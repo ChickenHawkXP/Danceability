@@ -73,6 +73,13 @@ def get_user_tracks(token):
     response = requests.get('https://api.spotify.com/v1/me/top/tracks', headers=headers)
     return response.json()
 
+def get_playlist(token,playlistid):
+    headers = {
+    'Authorization': 'Bearer %s'%token,
+    }
+    response = requests.get('https://api.spotify.com/v1/playlists/%s'%playlistid, headers=headers)
+    return response.json()
+
 def get_analysis(token,id):
     # Precondition: A unique string access code, passed by Spotify endpoint and a unqiue string belonging to each spotify track
     # Obtain Spotify's track analysis (Danceability mainly)
@@ -119,10 +126,22 @@ def main():
     
     choice = 0
     flag = True
-    while(choice != '2'):
-        print("\n[1] Search by Track\n[2] Quit\n")
+    while(choice != '3'):
+        print("\n[1] Search by Track\n[2] Get playlist\n[3] Quit")
         choice = input("What would you like to do?: ")
         if choice == '1':
             while flag:
-               flag = search_track(access_token)
-    quit()
+                print("Enter '-x-' to exit")
+                flag = search_track(access_token)
+        if choice == '2':
+            avg_dance = 0.0
+            avg_count = 0
+            playlist_id = input("Input the playlist uri: ")
+            playlist_tracks = get_playlist(access_token,playlist_id[17::])
+            for i in playlist_tracks['tracks']['items']:
+                ids = i['track']['id']
+                dance = get_analysis(access_token,ids)
+                avg_dance += float(dance['danceability'])
+                avg_count += 1
+                print(i['track']['name'],"-",dance['danceability'])      
+            print("Danceability average of this playlist: %.2f"%(avg_dance/avg_count))
